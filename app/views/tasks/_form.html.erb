@@ -1,27 +1,44 @@
-<%= form_with(model: task) do |form| %>
+<%= form_with(model: task, local: true) do |form| %>
   <% if task.errors.any? %>
     <div id="error_explanation">
       <h2><%= pluralize(task.errors.count, "error") %> prohibited this task from being saved:</h2>
 
       <ul>
-        <% task.errors.each do |error| %>
-          <li><%= error.full_message %></li>
-        <% end %>
+      <% task.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
       </ul>
     </div>
   <% end %>
 
-  <div class="field">
-    <%= form.label :name %>
-    <%= form.text_field :name %>
-  </div>
+  <div class="form">
+    <div class="task_name">
+      <%= form.label :Name %>
+      <%= form.text_field :name%>
+    </div>
 
-  <div class="field">
-    <%= form.label :description %>
-    <%= form.text_field :description %>
-  </div>
+    <div class="task_description">
+      <%= form.label :Description %>
+      <%= form.text_field :description%>
+    </div>
 
-  <div class="actions">
-    <%= form.submit %>
-  </div>
-<% end %>
+    <div class="task_priority">
+      <%= form.label :Priority %>
+      <%= form.select :priority, options_for_select([[''],['high'], ['medium'], ['low']]), id: "priority" %>
+    </div>
+     <div class="task_status">
+      <%= form.label :Status %>
+      <%= form.select :status, options_for_select([[''],['Not started'], ['In progress'], ['Completed']]), id: "status"  %>
+    </div>
+
+    <div class="task_deadline">
+      <%= form.label :Deadline %>
+      <%= form.date_select :deadline, id: "deadline"%>
+    </div>    
+    <%= form.submit value:"Register", class: "btn btn-primary submit"%>
+   </div>
+
+  <% end %>
+
+  <br>
+  <%= link_to "Back ", tasks_path%>
