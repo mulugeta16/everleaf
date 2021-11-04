@@ -1,9 +1,10 @@
 class TasksController < ApplicationController
   before_action :set_task, only: %i[ show edit update destroy ]
   def index
-     @tasks = Task.all
-      if params[:sort_expired]
-       @tasks = @tasks.order('deadline DESC')
+     @tasks = Task.user_task_list(current_user.id)
+     Task.user_task_list(current_user.id)
+     if params[:sort_expired]
+      @tasks = @tasks.order('deadline DESC')
    elsif params[:name].present?
      if params[:status].present?
       @tasks = @tasks.name_search(params[:name]).status_search(params[:status])
@@ -12,9 +13,7 @@ class TasksController < ApplicationController
     end
   elsif params[:status].present?
       @tasks = @tasks.status_search(params[:status])
-  elsif params[:label_id].present?
-      @tasks = @tasks.label_search(params[:label_id])
-  elsif params[:sort_priority]
+    elsif params[:sort_priority]
       @tasks = @tasks.priority_ordered.page params[:page]
   else
       @tasks = @tasks.order('created_at DESC')
@@ -37,6 +36,7 @@ end
   # POST /tasks or /tasks.json
   def create
     @task = Task.new(task_params)
+    @task.user_id = current_user.id
    if params[:back]
   render :new
   else
