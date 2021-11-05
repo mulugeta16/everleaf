@@ -34,7 +34,7 @@ ActiveRecord::Schema.define(version: 2021_11_04_045306) do
     t.string "password_digest"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.boolean "admin"
+    t.boolean "admin", default: false
   end
 
   add_foreign_key "tasks", "users"
