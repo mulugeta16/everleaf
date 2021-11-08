@@ -1,141 +1,178 @@
 require 'rails_helper'
-RSpec.describe 'User management function', type: :system do
+describe 'User test', type: :system do
 
-  describe 'User creation function' do
-    context 'When creating a new user' do
-      it 'User is registered' do
+  describe 'User registration test' do
+    context 'when you sign up' do
+      it 'registers new users' do
         visit new_user_path
-        fill_in 'user[name]', with: 'sample'
-        fill_in 'user[email]', with: 'sample@example.com'
-        fill_in 'user[password]', with: '00000000'
-        fill_in 'user[password_confirmation]', with: '00000000'
-        click_button "Register"
-        expect(page).to have_content 'General Tasks List'
+        fill_in "name",         with: "Example User"
+        fill_in "email",        with: "user@example.com"
+        fill_in "password",     with: "foobar"
+        fill_in "password_confirmation", with: "foobar"
+        expect{ click_button "Register" }.to change(User, :count).by(1)
       end
     end
-    context 'When the user tries to jump to the task list screen without logging' do
-      it 'Transition to the login screen' do
+    context 'When the user tries to jump to the task list screen without logging in' do
+      it 'transition to the login screen' do
         visit tasks_path
-        expect(page).to have_content 'Log In'
+        expect(current_path).to eq new_session_path
+        expect(current_path).not_to eq tasks_path
       end
     end
   end
-  describe 'Testing session functionality' do
-    before do
-      @user = FactoryBot.create(:user)
-      admin_user = FactoryBot.create(:admin_user)
-    end
-    context 'When user tries login' do
-      it 'Login is a success' do
 
-          visit new_session_path
-          fill_in 'email', with: @user.email
-          fill_in 'password', with: @user.password
-        click_button "Login"
-        visit user_path (@user.id)
-        expect(page).to have_content 'New task'
+  describe 'Session functionality test' do
+    before do
+      User.create(name: 'user1',
+                               email: 'user1@example.com',
+                               password: 'password',
+                               password_confirmation: 'password')
+      visit new_session_path
+      fill_in 'email', with: 'user1@example.com'
+      fill_in 'password', with: 'password'
+      click_button 'Login'
+      @user = User.first
+    end
+    context 'to be able to log in' do
+      it 'enables log in' do
+        expect(current_path).to eq user_path(id: @user.id)
       end
     end
-    context 'When the user tries to jump to your details screen' do
-      it 'You can jump to your details screen' do
-        visit new_session_path
-        fill_in 'session[email]', with: 'sample@example.com'
-        fill_in 'session[password]', with: '00000000'
-        click_button "Login"
-        visit user_path (@user.id)
-        expect(page).to have_content 'Welcome to your page sample'
+    context 'to be able to log in' do
+      it 'enables login' do
+        expect(page).to have_content("New task")
       end
     end
-    context 'When a general user jumps to another person\'s details screen' do
-      it 'It will transition to the task list screen' do
-        visit new_session_path
-        fill_in 'session[email]', with: 'admin2@example.com'
-        fill_in 'session[password]', with: '00000000'
-        click_button "Login"
-        visit user_path (@user.id)
-        expect(page).to have_content 'General Tasks List'
-      end
-    end
-    context 'When the user tries to logout' do
-      it 'Logout successfully' do
-        visit new_session_path
-        fill_in 'session[email]', with: 'admin2@example.com'
-        fill_in 'session[password]', with: '00000000'
-        click_button "Login"
-        click_link "Logout"
-        expect(page).to have_content 'Sign up'
+    context 'When a general user jumps to another persons details screen' do
+      it 'transition to the task list screen' do
+        sue = User.create(name: 'Hi',
+                                 email: 'hi@gmail.com',
+                                 password: 'password',
+                                 password_confirmation: 'password')
+        visit user_path(id: sue.id)
+        expect(page).to have_content("General Tasks List")
       end
     end
   end
-  describe 'Admin screen test function' do
-    before do
-      @user = FactoryBot.create(:user)
-      admin_user = FactoryBot.create(:admin_user)
-    end
-    context 'When admin tries to access admin screen' do
-      it 'Admin screen is successfully displayed' do
+  describe 'Admin screen test' do
+    context 'Admin users should be able to access the admin screen' do
+      before do
+        User.create(name: 'admin',
+                          email: 'admin@gmail.com',
+                          password: 'password',
+                          password_confirmation: 'password',
+                          admin:true
+                           )
         visit new_session_path
-        fill_in 'session[email]', with: 'admin2@example.com'
-         fill_in 'session[password]', with: '00000000'
-        click_button "Login"
+        fill_in 'email', with: 'admin@gmail.com'
+        fill_in 'password', with: 'password'
+        click_button 'Login'
+        @admin_user = User.first
+      end
+      it 'accesses admin screen' do
+        expect(page).to have_content("Users")
+      end
+    end
+    context 'General users' do
+      it 'cannot access the management screen' do
+        User.create(name: 'user1',
+                                 email: 'user1@example.com',
+                                 password: 'password',
+                                 password_confirmation: 'password'
+                               )
+        visit new_session_path
+        fill_in 'email', with: 'user1@example.com'
+        fill_in 'password', with: 'password'
+        click_button 'Login'
+        @user = User.first
         visit admin_users_path
-        expect(page).to have_content 'Users list'
+        expect(page).to have_content("Task")
       end
     end
-    context 'When general user tries to access admin screen' do
-      it 'Admin screen is not displayed' do
+    context 'Admin users can' do
+      it 'register new users' do
+        User.create(name: 'admin',
+                          email: 'admin@example.com',
+                          password: 'password',
+                          password_confirmation: 'password',
+                          admin:true
+                           )
         visit new_session_path
-        fill_in 'email', with: @user.email
-        fill_in 'password', with: @user.password
-        click_button "Login"
-        visit admin_users_path
-        expect(page).to have_content 'General Tasks List'
+        fill_in 'email', with: 'admin@example.com'
+        fill_in 'password', with: 'password'
+        click_button 'Login'
+      visit new_admin_user_path
+        fill_in "name",         with: "Example User"
+        fill_in "email",        with: "user1@example.com"
+        fill_in "password",     with: "foobar"
+        fill_in "password_confirmation", with: "foobar"
+        click_button 'Register'
+        end
+    end
+    context 'Admin users should be able to' do
+      it ' access the user details screen' do
+        User.create(name: 'admin',
+                          email: 'admin@example.com',
+                          password: 'password',
+                          password_confirmation: 'password',
+                          admin:true
+                           )
+        visit new_session_path
+        fill_in 'email', with: 'admin@example.com'
+        fill_in 'password', with: 'password'
+        click_button 'Login'
+        @admin_user = User.first
+        click_on 'Show'
+        expect(page).to have_content("admin@example.com")
       end
     end
-    context 'When admin tries to register new user' do
-      it 'Admin can register user successfully' do
+    context 'Admin user can' do
+      before do
+        User.create(name: 'Hi',
+                                 email: 'hi@gmail.com',
+                                 password: 'password',
+                                 password_confirmation: 'password')
+        @user = User.first
+      end
+      it 'Edit the user from the user edit screen' do
+        User.create(name: 'admin',
+                          email: 'admin@example.com',
+                          password: 'password',
+                          password_confirmation: 'password',
+                          admin:true
+                           )
         visit new_session_path
-        fill_in 'session[email]', with: 'admin2@example.com'
-         fill_in 'session[password]', with: '00000000'
-        click_button "Login"
-        visit new_admin_user_path
-        fill_in 'user[name]', with: 'sample1'
-        fill_in 'user[email]', with: 'sample1@example.com'
-        fill_in 'user[password]', with: '00000000'
-        fill_in 'user[password_confirmation]', with: '00000000'
-        click_button "Register"
-        expect(page).to have_content 'Users list'
+        fill_in 'email', with: 'admin@example.com'
+        fill_in 'password', with: 'password'
+        click_button 'Login'
+        @admin_user = User.first
+        click_on('Modify', match: :first)
+
+        expect(current_path).to eq edit_admin_user_path(id: @user.id)
       end
     end
-    context 'When admin tries to access the user details screen' do
-      it 'The user details screen is successfully displayed' do
-        visit new_session_path
-        fill_in 'session[email]', with: 'admin2@example.com'
-         fill_in 'session[password]', with: '00000000'
-        click_button "Login"
-        visit admin_user_path (@user.id)
-        expect(page).to have_content 'Tasks of '+@user.name
+    context 'Admin users' do
+      before do
+        User.create(name: 'Hi',
+                                 email: 'hi@gmail.com',
+                                 password: 'password',
+                                 password_confirmation: 'password')
+        @user = User.first
       end
-    end
-    context 'When admin tries to edit the user' do
-      it 'The user edit screen is successfully displayed' do
+      it 'can delete users' do
+      User.create(name: 'admin',
+                          email: 'admin@example.com',
+                          password: 'password',
+                          password_confirmation: 'password',
+                          admin:true
+                           )
         visit new_session_path
-        fill_in 'session[email]', with: 'admin2@example.com'
-         fill_in 'session[password]', with: '00000000'
-        click_button "Login"
-        visit edit_admin_user_path(@user.id)
-        expect(page).to have_content 'Edit the user'
-      end
-    end
-    context 'When admin tries to delete a user' do
-      it 'The user is deleted successfully' do
-        visit new_session_path
-        fill_in 'session[email]', with: 'admin2@example.com'
-        fill_in 'session[password]', with: '00000000'
-        click_button "Login"
-        visit admin_users_path
-        click_on "delete#{@user.id}"
-        expect(page).to_not have_content @user.id
+        fill_in 'email', with: 'admin@example.com'
+        fill_in 'password', with: 'password'
+        click_button 'Login'
+        @admin_user = User.first
+        click_on('Delete', match: :first)
+              expect(page).to have_content('Users list')
       end
     end
   end

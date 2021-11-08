@@ -5,4 +5,14 @@ class User < ApplicationRecord
 	has_secure_password
 	validates :password, presence: true, length: { minimum: 6 }
 	has_many :tasks, dependent: :destroy
+  def self.admins
+    @users = User.all
+    @admins = 0
+    @users.each do |user|
+      if user.admin == true
+        @admins += 1
+      end
+    end
+    return @admins
+  end
 end

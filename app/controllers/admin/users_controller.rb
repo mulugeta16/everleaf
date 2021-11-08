@@ -43,10 +43,16 @@ class Admin::UsersController < ApplicationController
 	end
 
 	def destroy
-		@user.destroy
-		redirect_to admin_users_path, notice:"User deleted!"
-	end
-
+	      if @user.id == current_user.id
+	        redirect_to admin_users_url, notice: "You can not delete signed in user"
+	        @admins = User.admins
+	      elsif @admins == 1
+	        redirect_to admin_users_url, notice: "At least one admin must remain!"
+	      else
+	        @user.destroy
+	        redirect_to admin_users_url, notice: 'User was successfully destroyed.'
+	      end
+	    end
 	private
 
 	def user_params
