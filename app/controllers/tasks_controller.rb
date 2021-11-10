@@ -2,9 +2,8 @@ class TasksController < ApplicationController
   before_action :set_task, only: %i[ show edit update destroy ]
   def index
      @tasks = Task.user_task_list(current_user.id)
-     Task.user_task_list(current_user.id)
-     if params[:sort_expired]
-      @tasks = @tasks.order('deadline DESC')
+      if params[:sort_expired]
+       @tasks = @tasks.order('deadline DESC')
    elsif params[:name].present?
      if params[:status].present?
       @tasks = @tasks.name_search(params[:name]).status_search(params[:status])
@@ -13,13 +12,16 @@ class TasksController < ApplicationController
     end
   elsif params[:status].present?
       @tasks = @tasks.status_search(params[:status])
-    elsif params[:sort_priority]
-      @tasks = @tasks.priority_ordered.page params[:page]
+  elsif params[:label_id].present?
+      @tasks = @tasks.label_search(params[:label_id])
+  elsif params[:sort_priority]
+      @tasks = @tasks.priority_ordered
   else
       @tasks = @tasks.order('created_at DESC')
       @tasks = @tasks.order(created_at: :desc)
     end
 end
+
   # GET /tasks/1 or /tasks/1.json
  def show
   end
@@ -37,7 +39,8 @@ end
   def create
     @task = Task.new(task_params)
     @task.user_id = current_user.id
-   if params[:back]
+ # @task = current_user.tasks.build(task_params)
+ if params[:back]
   render :new
   else
     if @task.save
@@ -60,8 +63,6 @@ end
       end
     end
   end
-
-  # DELETE /tasks/1 or /tasks/1.json
   def destroy
     @task.destroy
     respond_to do |format|
@@ -69,13 +70,11 @@ end
       format.json { head :no_content }
     end
   end
-
   private
   def set_task
     @task = current_user.tasks.find(params[:id])
   end
-
 	def task_params
-		params.require(:task).permit(:name, :description, :status, :priority, :deadline)
+		params.require(:task).permit(:name, :description, :status, :priority, :deadline, label_ids: [])
 	end
   end

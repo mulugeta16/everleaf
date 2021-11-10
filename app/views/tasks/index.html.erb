@@ -8,10 +8,13 @@
   <%= form.text_field :name , placeholder: "Search...", class: "form-control mr-sm-2" %>
   <%= form.label :status, "Status" %>
   <%= form.select :status, options_for_select([[''],['Not started'], ['In progress'], ['Completed']]), class: "form-control mr-sm-2"%>
+  <%= form.label :label_id, "Label" %>
+  <%= form.select :label_id, Label.all.collect { |label| [ label.name, label.id ] }, {include_blank: true}%>
   <%= form.submit value: "search", class: "btn btn-outline-success my-2 my-sm-0", type: "submit" %>
 <% end %>
 </nav>
 <br>
+
 <p>
   <button type="button" class="btn btn-info" id="sort_deadline"><%= link_to "Sort by end deadline", tasks_path(sort_expired: "true") %></button>
   <button type="button" class="btn btn-info" id="sort_priority"><%= link_to "Sort by priority", tasks_path(sort_priority_high: "true") %></button>
@@ -25,6 +28,7 @@
       <th scope="col">Priority</th>
       <th scope="col">Status</th>
       <th scope="col">Deadline</th>
+      <th scope="col">Label</th>
     </tr>
   </thead>
 
@@ -37,7 +41,10 @@
         <td><%= task.status %></td>
         <td class="deadline_row"><%= task.deadline %></td>
         <td>
-
+           <% task.labels.each do |label| %>
+           <%= label.name %>
+           <% end %>
+        </td>
         <td><%= link_to 'Details', task, data: { confirm: 'Are you sure you want to see the task details?' }, :class => "btn btn-primary btn-sm" %></td>
         <td><%= link_to 'Edit', edit_task_path(task), data: { confirm: 'Are you sure you want to edit the task?' }, :class => "btn btn-primary btn-sm" %></td>
         <td><%= link_to 'Delete', task, method: :delete, data: { confirm: 'Are you sure you want to delete the task?' }, :class => "btn btn-primary btn-sm" %></td>
