@@ -1,5 +1,9 @@
 require 'rails_helper'
-
-RSpec.describe Label, type: :model do
-  pending "add some examples to (or delete) #{__FILE__}"
+describe 'Label model function', type: :model do
+  context 'Validation test' do
+    it 'It ensures Label is present' do
+      label = Label.new(name: '').save
+      expect(label).to eq(false)
+    end
+  end
 end
