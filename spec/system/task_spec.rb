@@ -21,7 +21,6 @@ RSpec.describe 'Task management function', type: :system do
         visit new_task_path
         fill_in 'Task Name', with: 'Task1'
         fill_in 'Description', with: 'description1'
-        fill_in 'Deadline', with: '002021-11-24'
         select 'Complete'
         select 'High'
         click_button 'Register'

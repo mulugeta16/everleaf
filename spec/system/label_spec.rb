@@ -29,16 +29,15 @@ RSpec.describe 'Label function', type: :system do
   describe 'Adding multiple labels to tasks function' do
     context 'When you add labels to task' do
       it 'The creates task with label' do
-        Label.create(name: 'Work')
-        Label.create(name: 'Social')
+        Label.create(name: 'label1')
+        Label.create(name: 'label2')
         visit new_task_path
-        fill_in 'Task Name', with: 'task1'
-        fill_in 'Description', with: 'description1'
-        fill_in 'Deadline', with: '002021-11-24'
+        fill_in 'task_name', with: 'task8'
+        fill_in 'task_description', with: 'description1'
         select 'Complete'
-        select 'High'
-        select 'Work'
-        select 'Social'
+        select 'high'
+        select 'Completed'
+         check 'label2'
         click_button 'Register'
         expect(page).to have_content 'The task was successfully created'
       end
